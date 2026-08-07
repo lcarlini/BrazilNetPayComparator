@@ -1,0 +1,256 @@
+{
+  "year": 2025,
+  "sources": [
+    {
+      "id": "inss-2025",
+      "title": "Portaria Interministerial MPS/MF — INSS 2025",
+      "url": "https://www.gov.br/inss/pt-br/direitos-e-deveres/inscricao-e-contribuicao/tabela-de-contribuicao-mensal"
+    },
+    {
+      "id": "irrf-2025",
+      "title": "Lei 15.191/2025 — tabela IRRF",
+      "url": "https://www.planalto.gov.br"
+    },
+    {
+      "id": "simples",
+      "title": "LC 123/2006 — Simples Nacional anexos",
+      "url": "https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm"
+    }
+  ],
+  "minimumWage": 1518.0,
+  "inss": {
+    "ceiling": 8157.41,
+    "employeeBrackets": [
+      { "upTo": 1518.0, "rate": 0.075, "deduction": 0 },
+      { "upTo": 2793.88, "rate": 0.09, "deduction": 22.77 },
+      { "upTo": 4190.83, "rate": 0.12, "deduction": 106.59 },
+      { "upTo": 8157.41, "rate": 0.14, "deduction": 190.4 }
+    ],
+    "individualRateOnPj": 0.11,
+    "autonomousRate": 0.2
+  },
+  "irrf": {
+    "dependentDeduction": 189.59,
+    "simplifiedDeduction": 607.2,
+    "brackets": [
+      { "upTo": 2428.8, "rate": 0, "deduction": 0 },
+      { "upTo": 2826.65, "rate": 0.075, "deduction": 182.16 },
+      { "upTo": 3751.05, "rate": 0.15, "deduction": 394.16 },
+      { "upTo": 4664.68, "rate": 0.225, "deduction": 675.49 },
+      { "upTo": null, "rate": 0.275, "deduction": 908.73 }
+    ],
+    "reducer": null
+  },
+  "clt": {
+    "fgtsRate": 0.08,
+    "fgtsTerminationFineRate": 0.4,
+    "employerInssRate": 0.2,
+    "ratAverageRate": 0.02,
+    "thirdPartyAverageRate": 0.058,
+    "paidHolidaysDaysPerYear": 12,
+    "weeklyRestAlreadyInSalary": true,
+    "vacationBonusRate": 0.3333333333,
+    "noticeBaseDays": 30,
+    "noticeExtraDaysPerYear": 3,
+    "noticeExtraDaysCap": 60,
+    "unemploymentInsurance": {
+      "avgMonthlyBenefitShareOfSalary": 0.8,
+      "maxMonths": 5,
+      "note": "Approximate average; actual UI depends on tenure and salary history."
+    },
+    "defaultBenefitsMonthly": {
+      "healthInsurance": 480,
+      "dentalInsurance": 45,
+      "lifeInsurance": 28,
+      "mealVoucher": 750,
+      "transportVoucher": 240,
+      "other": 0
+    }
+  },
+  "pj": {
+    "openingCostAverage": 1300,
+    "closingCostAverage": 1900,
+    "accountingMonthlyAverage": 299,
+    "certificateDigitalAnnual": 220,
+    "municipalFeesAnnualAverage": 160,
+    "defaultHealthInsurance": 480,
+    "defaultLifeInsurance": 45,
+    "issDefaultRate": 0.05,
+    "fatorRThreshold": 0.28,
+    "proLaboreDefaultMonthsOfMinimumWage": 1,
+    "simples": {
+      "annexIII": [
+        {
+          "upTo": 180000,
+          "nominalRate": 0.06,
+          "deduction": 0,
+          "shares": {
+            "irpj": 0.04,
+            "csll": 0.035,
+            "cofins": 0.1282,
+            "pis": 0.0278,
+            "cpp": 0.434,
+            "iss": 0.335
+          }
+        },
+        {
+          "upTo": 360000,
+          "nominalRate": 0.112,
+          "deduction": 9360,
+          "shares": {
+            "irpj": 0.04,
+            "csll": 0.035,
+            "cofins": 0.1405,
+            "pis": 0.0305,
+            "cpp": 0.434,
+            "iss": 0.32
+          }
+        },
+        {
+          "upTo": 720000,
+          "nominalRate": 0.135,
+          "deduction": 17640,
+          "shares": {
+            "irpj": 0.04,
+            "csll": 0.035,
+            "cofins": 0.1364,
+            "pis": 0.0296,
+            "cpp": 0.434,
+            "iss": 0.325
+          }
+        },
+        {
+          "upTo": 1800000,
+          "nominalRate": 0.16,
+          "deduction": 35640,
+          "shares": {
+            "irpj": 0.04,
+            "csll": 0.035,
+            "cofins": 0.1364,
+            "pis": 0.0296,
+            "cpp": 0.434,
+            "iss": 0.325
+          }
+        },
+        {
+          "upTo": 3600000,
+          "nominalRate": 0.21,
+          "deduction": 125640,
+          "shares": {
+            "irpj": 0.04,
+            "csll": 0.035,
+            "cofins": 0.1282,
+            "pis": 0.0278,
+            "cpp": 0.434,
+            "iss": 0.335
+          }
+        },
+        {
+          "upTo": 4800000,
+          "nominalRate": 0.33,
+          "deduction": 648000,
+          "shares": {
+            "irpj": 0.35,
+            "csll": 0.15,
+            "cofins": 0.1603,
+            "pis": 0.0347,
+            "cpp": 0.305,
+            "iss": 0.0
+          }
+        }
+      ],
+      "annexV": [
+        {
+          "upTo": 180000,
+          "nominalRate": 0.155,
+          "deduction": 0,
+          "shares": {
+            "irpj": 0.25,
+            "csll": 0.15,
+            "cofins": 0.1405,
+            "pis": 0.0305,
+            "cpp": 0.2885,
+            "iss": 0.1405
+          }
+        },
+        {
+          "upTo": 360000,
+          "nominalRate": 0.18,
+          "deduction": 4500,
+          "shares": {
+            "irpj": 0.23,
+            "csll": 0.15,
+            "cofins": 0.141,
+            "pis": 0.0305,
+            "cpp": 0.2785,
+            "iss": 0.17
+          }
+        },
+        {
+          "upTo": 720000,
+          "nominalRate": 0.195,
+          "deduction": 9900,
+          "shares": {
+            "irpj": 0.24,
+            "csll": 0.15,
+            "cofins": 0.1251,
+            "pis": 0.0272,
+            "cpp": 0.2385,
+            "iss": 0.2192
+          }
+        },
+        {
+          "upTo": 1800000,
+          "nominalRate": 0.205,
+          "deduction": 17100,
+          "shares": {
+            "irpj": 0.21,
+            "csll": 0.15,
+            "cofins": 0.1251,
+            "pis": 0.0272,
+            "cpp": 0.2385,
+            "iss": 0.2492
+          }
+        },
+        {
+          "upTo": 3600000,
+          "nominalRate": 0.23,
+          "deduction": 62100,
+          "shares": {
+            "irpj": 0.23,
+            "csll": 0.125,
+            "cofins": 0.141,
+            "pis": 0.0305,
+            "cpp": 0.2385,
+            "iss": 0.235
+          }
+        },
+        {
+          "upTo": 4800000,
+          "nominalRate": 0.305,
+          "deduction": 540000,
+          "shares": {
+            "irpj": 0.35,
+            "csll": 0.15,
+            "cofins": 0.1603,
+            "pis": 0.0347,
+            "cpp": 0.305,
+            "iss": 0.0
+          }
+        }
+      ],
+      "exportExemptShares": ["pis", "cofins", "iss"]
+    },
+    "lucroPresumido": {
+      "servicePresumptionIrpj": 0.32,
+      "servicePresumptionCsll": 0.32,
+      "irpjRate": 0.15,
+      "irpjAdditionalRate": 0.1,
+      "irpjAdditionalMonthlyThreshold": 20000,
+      "csllRate": 0.09,
+      "pisRate": 0.0065,
+      "cofinsRate": 0.03,
+      "exportExempt": ["pis", "cofins", "iss"]
+    }
+  }
+}
