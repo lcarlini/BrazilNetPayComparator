@@ -6,10 +6,10 @@ import {
   formatBRL,
   formatPct,
   type AnnexMode,
-  type BenefitsInput,
   type PjRegime,
   type TerminationType,
 } from './calc'
+import { CostEditor } from './components/CostEditor'
 import { AVAILABLE_YEARS, DEFAULT_YEAR, getYearData } from './data'
 import {
   CNAE_OPTIONS,
@@ -19,6 +19,13 @@ import {
   getCnae,
   simplesRuleLabel,
 } from './data/cnaes'
+import {
+  blankCostItem,
+  defaultCltBenefits,
+  defaultPjCosts,
+  syncAmortizeMonths,
+  type CostItem,
+} from './data/costCatalog'
 import { I18nProvider, useI18n } from './i18n'
 import { useTheme, type ThemeId } from './theme'
 import './app.css'
@@ -60,6 +67,30 @@ function moneyInput(value: number, onChange: (n: number) => void) {
   )
 }
 
+function LineList({
+  lines,
+  locale,
+  brl,
+}: {
+  lines: { id: string; labelEn: string; labelPt: string; formula: string; monthlyTotal: number }[]
+  locale: 'en' | 'pt'
+  brl: (n: number) => string
+}) {
+  return (
+    <dl className="line-list">
+      {lines.map((line) => (
+        <div key={line.id}>
+          <dt>
+            {locale === 'pt' ? line.labelPt : line.labelEn}
+            <span className="formula"> {line.formula}</span>
+          </dt>
+          <dd>{brl(line.monthlyTotal)}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
 function AppShell() {
   const { t, locale, setLocale } = useI18n()
   const { theme, setTheme } = useTheme()
@@ -70,9 +101,17 @@ function AppShell() {
   const [grossClt, setGrossClt] = useState(12000)
   const [invoicePj, setInvoicePj] = useState(18000)
   const [dependents, setDependents] = useState(0)
+  const [familySize, setFamilySize] = useState(3)
   const [advanced, setAdvanced] = useState(false)
 
-  const [benefits, setBenefits] = useState<BenefitsInput>(data.clt.defaultBenefitsMonthly)
+  const [cltBenefits, setCltBenefits] = useState<CostItem[]>(() =>
+    defaultCltBenefits(getYearData(DEFAULT_YEAR), 3),
+  )
+  const [amortize, setAmortize] = useState(36)
+  const [pjCosts, setPjCosts] = useState<CostItem[]>(() =>
+    defaultPjCosts(getYearData(DEFAULT_YEAR), 3, 36),
+  )
+
   const [cnaeCode, setCnaeCode] = useState(DEFAULT_CNAE_CODE)
   const selectedCnae = useMemo(() => getCnae(cnaeCode), [cnaeCode])
   const [pjRegime, setPjRegime] = useState<PjRegime>('simples')
@@ -82,12 +121,6 @@ function AppShell() {
   const [forceFatorR, setForceFatorR] = useState(true)
   const [proLabore, setProLabore] = useState(data.minimumWage)
   const [rbt12, setRbt12] = useState(18000 * 12)
-  const [pjHealth, setPjHealth] = useState(data.pj.defaultHealthInsurance)
-  const [pjLife, setPjLife] = useState(data.pj.defaultLifeInsurance)
-  const [accounting, setAccounting] = useState(data.pj.accountingMonthlyAverage)
-  const [opening, setOpening] = useState(data.pj.openingCostAverage)
-  const [closing, setClosing] = useState(data.pj.closingCostAverage)
-  const [amortize, setAmortize] = useState(36)
   const [issRate, setIssRate] = useState(getCnae(DEFAULT_CNAE_CODE).defaultIssRate)
 
   const onCnaeChange = (code: string) => {
@@ -96,6 +129,27 @@ function AppShell() {
     setAnnexMode(annexModeFromCnae(cnae))
     setIssRate(cnae.defaultIssRate)
     if (cnae.simplesRule === 'fator_r') setForceFatorR(true)
+  }
+
+  const applyFamilySize = (size: number) => {
+    const qty = Math.max(1, size)
+    setFamilySize(qty)
+    setCltBenefits((prev) =>
+      prev.map((item) =>
+        item.id === 'health' || item.id === 'dental' ? { ...item, quantity: qty } : item,
+      ),
+    )
+    setPjCosts((prev) =>
+      prev.map((item) =>
+        item.id === 'health' || item.id === 'dental' ? { ...item, quantity: qty } : item,
+      ),
+    )
+  }
+
+  const onAmortizeChange = (months: number) => {
+    const m = Math.max(1, months)
+    setAmortize(m)
+    setPjCosts((prev) => syncAmortizeMonths(prev, m))
   }
 
   const [termSalary, setTermSalary] = useState(12000)
@@ -110,20 +164,15 @@ function AppShell() {
   const onYearChange = (next: number) => {
     const y = getYearData(next)
     setYear(next)
-    setBenefits(y.clt.defaultBenefitsMonthly)
+    setCltBenefits(defaultCltBenefits(y, familySize))
+    setPjCosts(defaultPjCosts(y, familySize, amortize))
     setProLabore(y.minimumWage)
-    setPjHealth(y.pj.defaultHealthInsurance)
-    setPjLife(y.pj.defaultLifeInsurance)
-    setAccounting(y.pj.accountingMonthlyAverage)
-    setOpening(y.pj.openingCostAverage)
-    setClosing(y.pj.closingCostAverage)
-    // Keep ISS from selected CNAE rather than year default
     setIssRate(getCnae(cnaeCode).defaultIssRate)
   }
 
   const clt = useMemo(
-    () => calculateClt(grossClt, dependents, benefits, data),
-    [grossClt, dependents, benefits, data],
+    () => calculateClt(grossClt, dependents, cltBenefits, data),
+    [grossClt, dependents, cltBenefits, data],
   )
 
   const pjShared = useMemo(
@@ -136,12 +185,7 @@ function AppShell() {
       proLabore,
       rbt12: rbt12 || invoicePj * 12,
       dependents,
-      healthInsurance: pjHealth,
-      lifeInsurance: pjLife,
-      accountingMonthly: accounting,
-      openingCost: opening,
-      closingCost: closing,
-      amortizeSetupMonths: amortize,
+      costItems: pjCosts,
       issRate,
       cnaeCode: selectedCnae.code,
       presumptionIrpj: selectedCnae.presumptionIrpj,
@@ -158,12 +202,7 @@ function AppShell() {
       proLabore,
       rbt12,
       dependents,
-      pjHealth,
-      pjLife,
-      accounting,
-      opening,
-      closing,
-      amortize,
+      pjCosts,
       issRate,
     ],
   )
@@ -172,11 +211,7 @@ function AppShell() {
     () => calculatePj({ ...pjShared, exportMode: false }),
     [pjShared],
   )
-
-  const pjIntl = useMemo(
-    () => calculatePj({ ...pjShared, exportMode: true }),
-    [pjShared],
-  )
+  const pjIntl = useMemo(() => calculatePj({ ...pjShared, exportMode: true }), [pjShared])
 
   const termination = useMemo(
     () =>
@@ -217,9 +252,6 @@ function AppShell() {
   const brl = (n: number) => formatBRL(n, localeTag)
   const pct = (n: number) => formatPct(n, localeTag)
 
-  const setBenefit = (key: keyof BenefitsInput, value: number) =>
-    setBenefits((prev) => ({ ...prev, [key]: value }))
-
   const tabs: { id: TabId; label: string }[] = [
     { id: 'compare', label: t.tabCompare },
     { id: 'termination', label: t.tabTermination },
@@ -244,20 +276,14 @@ function AppShell() {
           <div className="controls">
             <label>
               {t.language}
-              <select
-                value={locale}
-                onChange={(e) => setLocale(e.target.value as 'en' | 'pt')}
-              >
+              <select value={locale} onChange={(e) => setLocale(e.target.value as 'en' | 'pt')}>
                 <option value="en">English</option>
                 <option value="pt">Português</option>
               </select>
             </label>
             <label>
               {t.theme}
-              <select
-                value={theme}
-                onChange={(e) => setTheme(e.target.value as ThemeId)}
-              >
+              <select value={theme} onChange={(e) => setTheme(e.target.value as ThemeId)}>
                 <option value="black">{t.themeBlack}</option>
                 <option value="light">{t.themeLight}</option>
               </select>
@@ -348,29 +374,46 @@ function AppShell() {
                   <option value="lucro_presumido">{t.lucroPresumido}</option>
                 </select>
               </label>
+              <label>
+                {t.familySize}
+                <input
+                  type="number"
+                  min={1}
+                  value={familySize}
+                  onChange={(e) => setFamilySize(Math.max(1, Number(e.target.value) || 1))}
+                />
+              </label>
+              <div className="family-actions">
+                <button
+                  type="button"
+                  className="linkish"
+                  onClick={() => applyFamilySize(familySize)}
+                >
+                  {t.applyFamilySize}
+                </button>
+              </div>
             </div>
+
+            <CostEditor
+              title={t.benefits}
+              hint={t.benefitsHint}
+              items={cltBenefits}
+              onChange={setCltBenefits}
+              onAdd={() => setCltBenefits((prev) => [...prev, blankCostItem('clt')])}
+            />
+
+            <CostEditor
+              title={t.pjCosts}
+              hint={t.pjCostsHint}
+              items={pjCosts}
+              onChange={setPjCosts}
+              onAdd={() => setPjCosts((prev) => [...prev, blankCostItem('pj')])}
+              amortizeMonths={amortize}
+              onAmortizeMonthsChange={onAmortizeChange}
+            />
 
             {advanced && (
               <>
-                <h3>{t.benefits}</h3>
-                <div className="grid-3">
-                  {(
-                    [
-                      ['healthInsurance', t.health],
-                      ['dentalInsurance', t.dental],
-                      ['lifeInsurance', t.life],
-                      ['mealVoucher', t.meal],
-                      ['transportVoucher', t.transport],
-                      ['other', t.other],
-                    ] as const
-                  ).map(([key, label]) => (
-                    <label key={key}>
-                      {label}
-                      {moneyInput(benefits[key], (n) => setBenefit(key, n))}
-                    </label>
-                  ))}
-                </div>
-
                 <h3>{t.pjSettings}</h3>
                 <div className="grid-3">
                   <label>
@@ -407,35 +450,6 @@ function AppShell() {
                   <label>
                     {t.rbt12}
                     {moneyInput(rbt12, setRbt12)}
-                  </label>
-                  <label>
-                    {t.pjHealth}
-                    {moneyInput(pjHealth, setPjHealth)}
-                  </label>
-                  <label>
-                    {t.pjLife}
-                    {moneyInput(pjLife, setPjLife)}
-                  </label>
-                  <label>
-                    {t.accounting}
-                    {moneyInput(accounting, setAccounting)}
-                  </label>
-                  <label>
-                    {t.opening}
-                    {moneyInput(opening, setOpening)}
-                  </label>
-                  <label>
-                    {t.closing}
-                    {moneyInput(closing, setClosing)}
-                  </label>
-                  <label>
-                    {t.amortize}
-                    <input
-                      type="number"
-                      min={1}
-                      value={amortize}
-                      onChange={(e) => setAmortize(Number(e.target.value) || 1)}
-                    />
                   </label>
                   <label>
                     {t.iss}
@@ -504,7 +518,14 @@ function AppShell() {
                   </div>
                 </div>
 
+                <p className="section-label">{t.breakdownBenefits}</p>
+                <LineList lines={clt.benefitLines} locale={locale} brl={brl} />
+
                 <dl>
+                  <div>
+                    <dt>{t.benefitsTotal}</dt>
+                    <dd>{brl(clt.benefitsTotal)}</dd>
+                  </div>
                   <div>
                     <dt>{t.equivalentComp}</dt>
                     <dd>{brl(clt.equivalentMonthlyCompensation)}</dd>
@@ -522,32 +543,12 @@ function AppShell() {
                     <dd>{brl(clt.thirteenthNet)}</dd>
                   </div>
                   <div>
-                    <dt>{t.vacation}</dt>
-                    <dd>{brl(clt.vacationMonthly)}</dd>
-                  </div>
-                  <div>
                     <dt>{t.vacationBonus}</dt>
                     <dd>{brl(clt.vacationBonusMonthly)}</dd>
                   </div>
                   <div>
                     <dt>{t.fgts}</dt>
                     <dd>{brl(clt.fgtsMonthly + clt.fgtsOnThirteenth + clt.fgtsOnVacation)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.paidHolidays}</dt>
-                    <dd>{brl(clt.paidHolidaysMonthly)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.benefitsTotal}</dt>
-                    <dd>{brl(clt.benefitsTotal)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.employerCost}</dt>
-                    <dd>{brl(clt.employerTotalCost)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.employerCostAnnual}</dt>
-                    <dd>{brl(clt.employerTotalCostAnnual)}</dd>
                   </div>
                   <div>
                     <dt>{t.employerInss}</dt>
@@ -573,11 +574,52 @@ function AppShell() {
                 <h3>{t.pjNationalCard}</h3>
                 <p className="metric">{brl(pjNational.netTakeHome)}</p>
                 <p className="metric-label">{t.netTakeHome}</p>
+                <div className="period-grid">
+                  <div className="period-block">
+                    <p className="period-title">{t.periodMonthly}</p>
+                    <dl>
+                      <div>
+                        <dt>{t.grossPay}</dt>
+                        <dd>{brl(pjNational.monthly.grossRevenue)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.companyTax}</dt>
+                        <dd>{brl(pjNational.monthly.taxes)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.breakdownCosts}</dt>
+                        <dd>{brl(pjNational.monthly.costs)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.netPay}</dt>
+                        <dd>{brl(pjNational.monthly.net)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div className="period-block">
+                    <p className="period-title">{t.periodAnnual}</p>
+                    <dl>
+                      <div>
+                        <dt>{t.grossPay}</dt>
+                        <dd>{brl(pjNational.annual.grossRevenue)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.companyTax}</dt>
+                        <dd>{brl(pjNational.annual.taxes)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.breakdownCosts}</dt>
+                        <dd>{brl(pjNational.annual.costs)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.netPay}</dt>
+                        <dd>{brl(pjNational.annual.net)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
                 <p className="delta">
                   {t.vsClt}: {brl(pjNational.netTakeHome - clt.equivalentMonthlyCompensation)}
-                </p>
-                <p className="delta">
-                  {t.vsEmployer}: {brl(pjNational.netTakeHome - clt.employerTotalCost)}
                 </p>
                 <dl>
                   <div>
@@ -593,16 +635,8 @@ function AppShell() {
                     <dd>{pct(pjNational.effectiveTaxRate)}</dd>
                   </div>
                   <div>
-                    <dt>{t.companyTax}</dt>
-                    <dd>{brl(pjNational.companyTax)}</dd>
-                  </div>
-                  <div>
                     <dt>{t.annexUsed}</dt>
                     <dd>{pjNational.annex ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.fatorR}</dt>
-                    <dd>{pct(pjNational.fatorR)}</dd>
                   </div>
                   <div>
                     <dt>{t.proLaboreNet}</dt>
@@ -612,15 +646,18 @@ function AppShell() {
                     <dt>{t.distribution}</dt>
                     <dd>{brl(pjNational.distribution)}</dd>
                   </div>
-                  <div>
-                    <dt>{t.fixedCosts}</dt>
-                    <dd>{brl(pjNational.fixedCostsMonthly)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.benefitsOutside}</dt>
-                    <dd>{brl(pjNational.benefitsOutside)}</dd>
-                  </div>
                 </dl>
+                <p className="section-label">{t.breakdownTaxes}</p>
+                <dl className="tax-split">
+                  {Object.entries(pjNational.taxBreakdown).map(([k, v]) => (
+                    <div key={k}>
+                      <dt>{k.toUpperCase()}</dt>
+                      <dd>{brl(v)}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="section-label">{t.breakdownCosts}</p>
+                <LineList lines={pjNational.costLines} locale={locale} brl={brl} />
                 <p className="note">{t.domesticNote}</p>
               </article>
 
@@ -628,11 +665,52 @@ function AppShell() {
                 <h3>{t.pjIntlCard}</h3>
                 <p className="metric">{brl(pjIntl.netTakeHome)}</p>
                 <p className="metric-label">{t.netTakeHome}</p>
+                <div className="period-grid">
+                  <div className="period-block">
+                    <p className="period-title">{t.periodMonthly}</p>
+                    <dl>
+                      <div>
+                        <dt>{t.grossPay}</dt>
+                        <dd>{brl(pjIntl.monthly.grossRevenue)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.companyTax}</dt>
+                        <dd>{brl(pjIntl.monthly.taxes)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.breakdownCosts}</dt>
+                        <dd>{brl(pjIntl.monthly.costs)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.netPay}</dt>
+                        <dd>{brl(pjIntl.monthly.net)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div className="period-block">
+                    <p className="period-title">{t.periodAnnual}</p>
+                    <dl>
+                      <div>
+                        <dt>{t.grossPay}</dt>
+                        <dd>{brl(pjIntl.annual.grossRevenue)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.companyTax}</dt>
+                        <dd>{brl(pjIntl.annual.taxes)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.breakdownCosts}</dt>
+                        <dd>{brl(pjIntl.annual.costs)}</dd>
+                      </div>
+                      <div>
+                        <dt>{t.netPay}</dt>
+                        <dd>{brl(pjIntl.annual.net)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
                 <p className="delta">
                   {t.vsClt}: {brl(pjIntl.netTakeHome - clt.equivalentMonthlyCompensation)}
-                </p>
-                <p className="delta">
-                  {t.vsEmployer}: {brl(pjIntl.netTakeHome - clt.employerTotalCost)}
                 </p>
                 <dl>
                   <div>
@@ -640,24 +718,12 @@ function AppShell() {
                     <dd>{pjIntl.cnaeCode ?? '—'}</dd>
                   </div>
                   <div>
-                    <dt>{t.cnaeRule}</dt>
-                    <dd>{simplesRuleLabel(selectedCnae.simplesRule, locale)}</dd>
-                  </div>
-                  <div>
                     <dt>{t.effectiveTax}</dt>
                     <dd>{pct(pjIntl.effectiveTaxRate)}</dd>
                   </div>
                   <div>
-                    <dt>{t.companyTax}</dt>
-                    <dd>{brl(pjIntl.companyTax)}</dd>
-                  </div>
-                  <div>
                     <dt>{t.annexUsed}</dt>
                     <dd>{pjIntl.annex ?? '—'}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.fatorR}</dt>
-                    <dd>{pct(pjIntl.fatorR)}</dd>
                   </div>
                   <div>
                     <dt>{t.proLaboreNet}</dt>
@@ -667,26 +733,19 @@ function AppShell() {
                     <dt>{t.distribution}</dt>
                     <dd>{brl(pjIntl.distribution)}</dd>
                   </div>
-                  <div>
-                    <dt>{t.fixedCosts}</dt>
-                    <dd>{brl(pjIntl.fixedCostsMonthly)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t.benefitsOutside}</dt>
-                    <dd>{brl(pjIntl.benefitsOutside)}</dd>
-                  </div>
                 </dl>
+                <p className="section-label">{t.breakdownTaxes}</p>
+                <dl className="tax-split">
+                  {Object.entries(pjIntl.taxBreakdown).map(([k, v]) => (
+                    <div key={k}>
+                      <dt>{k.toUpperCase()}</dt>
+                      <dd>{brl(v)}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="section-label">{t.breakdownCosts}</p>
+                <LineList lines={pjIntl.costLines} locale={locale} brl={brl} />
                 <p className="note">{t.exportNote}</p>
-                {pjRegime === 'simples' && (
-                  <dl className="tax-split">
-                    {Object.entries(pjIntl.taxBreakdown).map(([k, v]) => (
-                      <div key={k}>
-                        <dt>{k.toUpperCase()}</dt>
-                        <dd>{brl(v)}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
               </article>
             </div>
           </section>
@@ -704,19 +763,11 @@ function AppShell() {
               </label>
               <label>
                 {t.hireDate}
-                <input
-                  type="date"
-                  value={hireDate}
-                  onChange={(e) => setHireDate(e.target.value)}
-                />
+                <input type="date" value={hireDate} onChange={(e) => setHireDate(e.target.value)} />
               </label>
               <label>
                 {t.termDate}
-                <input
-                  type="date"
-                  value={termDate}
-                  onChange={(e) => setTermDate(e.target.value)}
-                />
+                <input type="date" value={termDate} onChange={(e) => setTermDate(e.target.value)} />
               </label>
               <label>
                 {t.termType}
@@ -780,15 +831,11 @@ function AppShell() {
                 </div>
                 <div>
                   <dt>{t.accruedVacation}</dt>
-                  <dd>
-                    {brl(termination.accruedVacation + termination.accruedVacationBonus)}
-                  </dd>
+                  <dd>{brl(termination.accruedVacation + termination.accruedVacationBonus)}</dd>
                 </div>
                 <div>
                   <dt>{t.unusedVacPay}</dt>
-                  <dd>
-                    {brl(termination.unusedVacation + termination.unusedVacationBonus)}
-                  </dd>
+                  <dd>{brl(termination.unusedVacation + termination.unusedVacationBonus)}</dd>
                 </div>
                 <div>
                   <dt>{t.fgtsFine}</dt>

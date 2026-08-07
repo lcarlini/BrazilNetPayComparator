@@ -101,6 +101,17 @@ export interface BenefitsInput {
   other: number
 }
 
+export interface CostLineResult {
+  id: string
+  labelEn: string
+  labelPt: string
+  unitValue: number
+  quantity: number
+  formula: string
+  monthlyTotal: number
+  annualTotal: number
+}
+
 export type PjRegime = 'simples' | 'lucro_presumido'
 export type AnnexMode = 'auto' | 'III' | 'V'
 
@@ -156,6 +167,7 @@ export interface CltResult {
   fgtsOnVacation: number
   paidHolidaysMonthly: number
   benefitsTotal: number
+  benefitLines: CostLineResult[]
   benefits: BenefitsInput
   employerCharges: {
     inss: number
@@ -191,7 +203,12 @@ export interface PjResult {
   fixedCostsMonthly: number
   benefitsOutside: number
   setupAmortizedMonthly: number
+  costLines: CostLineResult[]
+  costsMonthlyTotal: number
+  costsAnnualTotal: number
   netTakeHome: number
+  monthly: { grossRevenue: number; net: number; costs: number; taxes: number }
+  annual: { grossRevenue: number; net: number; costs: number; taxes: number }
   lines: MoneyLine[]
 }
 

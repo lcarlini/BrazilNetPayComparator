@@ -1,3 +1,4 @@
+import { breakDownCostItems, sumCostItemsMonthly, type CostItem } from '../data/costCatalog'
 import { calcIndividualInss, calcIrrf, round2 } from './math'
 import type {
   AnnexMode,
@@ -93,18 +94,12 @@ export function calculatePj(params: {
   proLabore: number
   rbt12: number
   dependents: number
-  healthInsurance: number
-  lifeInsurance: number
-  accountingMonthly: number
-  openingCost: number
-  closingCost: number
-  amortizeSetupMonths: number
+  costItems: CostItem[]
   issRate: number
   exportMode: boolean
   cnaeCode?: string
   presumptionIrpj?: number
   presumptionCsll?: number
-  /** When false, skip export exemptions even in international mode */
   exportEligible?: boolean
 }): PjResult {
   const {
@@ -116,12 +111,7 @@ export function calculatePj(params: {
     proLabore,
     rbt12,
     dependents,
-    healthInsurance,
-    lifeInsurance,
-    accountingMonthly,
-    openingCost,
-    closingCost,
-    amortizeSetupMonths,
+    costItems,
     issRate,
     exportMode,
     cnaeCode = null,
@@ -164,19 +154,23 @@ export function calculatePj(params: {
   const afterCompanyTax = round2(revenue - taxResult.tax)
   const distribution = round2(Math.max(0, afterCompanyTax - effectiveProLabore))
 
-  const setupAmortizedMonthly = round2(
-    (openingCost + closingCost) / Math.max(1, amortizeSetupMonths),
-  )
-  const certMonthly = round2(year.pj.certificateDigitalAnnual / 12)
-  const municipalMonthly = round2(year.pj.municipalFeesAnnualAverage / 12)
-  const fixedCostsMonthly = round2(
-    accountingMonthly + certMonthly + municipalMonthly + setupAmortizedMonthly,
-  )
-  const benefitsOutside = round2(healthInsurance + lifeInsurance)
+  const costLines = breakDownCostItems(costItems)
+  const costsMonthlyTotal = sumCostItemsMonthly(costItems)
+  const costsAnnualTotal = round2(costsMonthlyTotal * 12)
 
-  const netTakeHome = round2(
-    proLaboreNet + distribution - fixedCostsMonthly - benefitsOutside,
+  const setupAmortizedMonthly = round2(
+    costLines
+      .filter((c) => c.id === 'opening' || c.id === 'closing')
+      .reduce((s, c) => s + c.monthlyTotal, 0),
   )
+  const benefitsOutside = round2(
+    costLines
+      .filter((c) => c.id === 'health' || c.id === 'dental' || c.id === 'life')
+      .reduce((s, c) => s + c.monthlyTotal, 0),
+  )
+  const fixedCostsMonthly = costsMonthlyTotal
+
+  const netTakeHome = round2(proLaboreNet + distribution - costsMonthlyTotal)
 
   return {
     kind: exportMode ? 'international' : 'national',
@@ -196,14 +190,28 @@ export function calculatePj(params: {
     fixedCostsMonthly,
     benefitsOutside,
     setupAmortizedMonthly,
+    costLines,
+    costsMonthlyTotal,
+    costsAnnualTotal,
     netTakeHome,
+    monthly: {
+      grossRevenue: revenue,
+      net: netTakeHome,
+      costs: costsMonthlyTotal,
+      taxes: taxResult.tax,
+    },
+    annual: {
+      grossRevenue: round2(revenue * 12),
+      net: round2(netTakeHome * 12),
+      costs: costsAnnualTotal,
+      taxes: round2(taxResult.tax * 12),
+    },
     lines: [
       { id: 'revenue', amount: revenue, kind: 'income' },
       { id: 'companyTax', amount: -taxResult.tax, kind: 'deduction' },
       { id: 'proLaboreInss', amount: -proLaboreInss, kind: 'deduction' },
       { id: 'proLaboreIrrf', amount: -proLaboreIrrf, kind: 'deduction' },
-      { id: 'fixedCosts', amount: -fixedCostsMonthly, kind: 'deduction' },
-      { id: 'benefitsOutside', amount: -benefitsOutside, kind: 'deduction' },
+      { id: 'costs', amount: -costsMonthlyTotal, kind: 'deduction' },
       { id: 'net', amount: netTakeHome, kind: 'income' },
     ],
   }

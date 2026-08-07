@@ -816,6 +816,157 @@ label.check input {
   color: var(--fg);
 }
 
+.family-actions {
+  display: flex;
+  align-items: end;
+  padding-bottom: 0.15rem;
+}
+
+.cost-editor {
+  margin-top: 1.4rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+.cost-editor h3 {
+  margin: 0 0 0.25rem;
+}
+
+.amortize-row {
+  max-width: 220px;
+  margin: 0.75rem 0 1rem;
+}
+
+.cost-table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--surface-border);
+  background: color-mix(in srgb, var(--bg0) 35%, transparent);
+}
+
+.cost-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.86rem;
+}
+
+.cost-table th,
+.cost-table td {
+  padding: 0.55rem 0.6rem;
+  text-align: left;
+  border-bottom: 1px solid var(--surface-border);
+  vertical-align: top;
+}
+
+.cost-table th {
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  font-weight: 600;
+}
+
+.cost-table input,
+.cost-table select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 0.86rem;
+  color: var(--input-fg);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+}
+
+.cost-name {
+  font-weight: 600;
+}
+
+.unit-hint {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--fg-faint);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.cost-total {
+  white-space: nowrap;
+}
+
+.cost-total .formula,
+.formula {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--fg-faint);
+  margin-top: 0.15rem;
+}
+
+.cost-table tfoot td {
+  border-bottom: 0;
+  background: var(--accent-soft);
+  font-weight: 600;
+}
+
+.remove-btn {
+  appearance: none;
+  border: 1px solid var(--surface-border);
+  background: transparent;
+  color: var(--fg-muted);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  color: #e07060;
+  border-color: #e07060;
+}
+
+.section-label {
+  position: relative;
+  z-index: 1;
+  margin: 1rem 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.line-list {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+.line-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--card-line);
+  font-size: 0.84rem;
+}
+
+.line-list dt {
+  color: var(--card-muted);
+}
+
+.line-list dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 @media (max-width: 960px) {
   .cards,
   .grid-3 {
