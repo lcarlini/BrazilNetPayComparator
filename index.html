@@ -25,6 +25,19 @@
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module">
+      // One index only:
+      // - github.io (Pages on main): load committed production bundle
+      // - local Vite: load source
+      if (location.hostname.endsWith('github.io')) {
+        const css = document.createElement('link')
+        css.rel = 'stylesheet'
+        css.href = '/BrazilNetPayComparator/assets/app.css'
+        document.head.appendChild(css)
+        import('/BrazilNetPayComparator/assets/app.js')
+      } else {
+        import('/src/main.tsx')
+      }
+    </script>
   </body>
 </html>
