@@ -4,38 +4,29 @@ Compare **CLT**, **domestic PJ** and **international PJ** take-home pay for the 
 
 **Live site:** https://lcarlini.github.io/BrazilNetPayComparator/
 
-## GitHub Pages setup (once)
+> Do **not** open `/docs/` — that folder was removed. There is **one** source `index.html` on `main` (for Vite). The live site is the **build** on the `gh-pages` branch.
 
-Repo **Settings → Pages**:
+## Pages (if the site is blank)
 
-1. **Source:** Deploy from a branch
-2. **Branch:** `gh-pages` / `/ (root)`
-
-The workflow builds the app and publishes only `dist/` to `gh-pages`. There is a single source `index.html` on `main` (Vite); the live site is the build on `gh-pages`.
+**Settings → Pages → Build and deployment → Branch:** `gh-pages` / `/ (root)`  
+Save. Wait ~1 minute.
 
 ## Features
 
 - English (default) and Portuguese
-- Year-versioned tax tables (`src/data/years/{year}.json`) — add a new year without losing older rules
-- **CLT**: INSS, IRRF (incl. 2026 reducer), 13th, vacation + 1/3, FGTS, paid holidays, benefits averages, employer charges, unemployment-insurance estimate
-- **CLT termination**: hire/end dates, unused vacation, FGTS fine (40%/20%), notice period
-- **PJ Nacional**: Simples Nacional (Annex III/V + Fator R) or Lucro Presumido, pró-labore INSS/IRRF, accounting, opening/closing amortized, benefits paid outside
-- **PJ Internacional**: export exemptions for PIS, COFINS and ISS (IRPJ/CSLL remain)
-- **CNAE** selection (default: software development `6201-5/01`)
+- Year-versioned tax tables (`src/data/years/{year}.json`)
+- CLT / PJ Nacional / PJ Internacional comparison
+- Editable benefits & costs (unit × quantity)
+- Termination calculator
+- CNAE selection (default: software `6201-5/01`)
 
-## Run
+## Run locally
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Update a tax year
-
-1. Copy `src/data/years/2026.json` to `src/data/years/2027.json`
-2. Edit INSS/IRRF/Simples/defaults
-3. Register the file in `src/data/index.ts`
-
 ## Disclaimer
 
-Educational estimate only. Confirm figures with a Brazilian accountant before making decisions.
+Educational estimate only. Confirm with a Brazilian accountant before decisions.
