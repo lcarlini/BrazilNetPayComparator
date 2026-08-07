@@ -3,5 +3,10 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: '/BrazilNetPayComparator/',
+  // Relative base so /docs/ (branch Pages) and Actions root deploy both work.
+  base: './',
+  build: {
+    outDir: 'docs',
+    emptyOutDir: true,
+  },
 })

@@ -2,7 +2,10 @@
 
 Compare **CLT**, **domestic PJ** and **international PJ** take-home pay for the Brazilian market.
 
-**Live site (GitHub Pages):** https://lcarlini.github.io/BrazilNetPayComparator/
+**Live site (GitHub Pages):** https://lcarlini.github.io/BrazilNetPayComparator/docs/
+
+> If the root URL is blank, open the `/docs/` link above, or in repo **Settings → Pages** set source to **GitHub Actions** (or branch `main` / folder `/docs`).
+
 
 ## Features
 
