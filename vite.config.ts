@@ -7,12 +7,12 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    cssCodeSplit: false,
     rollupOptions: {
       output: {
+        inlineDynamicImports: true,
         entryFileNames: 'assets/app.js',
-        chunkFileNames: 'assets/[name].js',
-        assetFileNames: (asset) =>
-          asset.name?.endsWith('.css') ? 'assets/app.css' : 'assets/[name][extname]',
+        assetFileNames: 'assets/app.css',
       },
     },
   },
