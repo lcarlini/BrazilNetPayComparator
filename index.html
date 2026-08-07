@@ -21,14 +21,6 @@
         var t = localStorage.getItem('bnp-theme')
         if (t === 'light' || t === 'black') document.documentElement.setAttribute('data-theme', t)
       } catch (e) {}
-      // Branch Pages serves Vite source at repo root (404 on /src/main.tsx).
-      // Built app is under /docs — redirect root only, never /docs itself.
-      if (
-        location.hostname.endsWith('github.io') &&
-        !location.pathname.includes('/docs')
-      ) {
-        location.replace('/BrazilNetPayComparator/docs/')
-      }
     </script>
   </head>
   <body>

@@ -2,10 +2,16 @@
 
 Compare **CLT**, **domestic PJ** and **international PJ** take-home pay for the Brazilian market.
 
-**Live site (GitHub Pages):** https://lcarlini.github.io/BrazilNetPayComparator/docs/
+**Live site:** https://lcarlini.github.io/BrazilNetPayComparator/
 
-> If the root URL is blank, open the `/docs/` link above, or in repo **Settings → Pages** set source to **GitHub Actions** (or branch `main` / folder `/docs`).
+## GitHub Pages setup (once)
 
+Repo **Settings → Pages**:
+
+1. **Source:** Deploy from a branch
+2. **Branch:** `gh-pages` / `/ (root)`
+
+The workflow builds the app and publishes only `dist/` to `gh-pages`. There is a single source `index.html` on `main` (Vite); the live site is the build on `gh-pages`.
 
 ## Features
 
