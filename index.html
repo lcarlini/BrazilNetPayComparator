@@ -21,26 +21,29 @@
         var t = localStorage.getItem('bnp-theme')
         if (t === 'light' || t === 'black') document.documentElement.setAttribute('data-theme', t)
       } catch (e) {}
+
+      // GitHub Pages serves this source index from main. Load the built bundle.
+      // (Plain script so Vite does not treat it as the app entry.)
+      if (location.hostname.endsWith('github.io')) {
+        var css = document.createElement('link')
+        css.rel = 'stylesheet'
+        css.href = '/BrazilNetPayComparator/assets/app.css'
+        document.head.appendChild(css)
+        window.__BNP_PAGES__ = true
+      }
     </script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module">
-      // Single index.html:
-      // - Local Vite → source
-      // - GitHub Pages → committed production bundle in /assets
-      if (location.hostname.endsWith('github.io')) {
-        const css = document.createElement('link')
-        css.rel = 'stylesheet'
-        css.href = '/BrazilNetPayComparator/assets/app.css'
-        document.head.appendChild(css)
-        const js = document.createElement('script')
+    <script>
+      if (window.__BNP_PAGES__) {
+        var js = document.createElement('script')
         js.type = 'module'
         js.src = '/BrazilNetPayComparator/assets/app.js'
-        document.head.appendChild(js)
-      } else {
-        import('/src/main.tsx')
+        document.body.appendChild(js)
       }
     </script>
+    <!-- Vite entry (local dev + production build). Ignored on Pages when app.js loads above. -->
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
